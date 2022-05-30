@@ -6,7 +6,6 @@ import random
 import inn
 import datetime
 from datetime import timedelta
-import experiments.exp_faker as fake
 import re
 import classification_natasha as classification_natasha
 import numpy as np
