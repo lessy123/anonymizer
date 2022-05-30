@@ -21,7 +21,6 @@ import inn
 import faker_generate as faker
 
 morph_vocab = MorphVocab()
-
 names_extractor = NamesExtractor(morph_vocab)
 dates_extractor = DatesExtractor(morph_vocab)
 money_extractor = MoneyExtractor(morph_vocab)

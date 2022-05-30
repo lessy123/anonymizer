@@ -1,7 +1,7 @@
 import fdb
 import connect_employee as CtoDB
 import sql_query as sql
-import change.blur as blur
+import blur as blur
 
 class perfecr():
     def new_file(self):
@@ -20,7 +20,7 @@ def write_file(data, filename):
 def readBLOB(cursor,connection,table,field,emp_id, photo):
     if __name__=='__main__':
         print("Reading BLOB data from python_employee table")
-    # try:
+    try:
         # print(field,table,emp_id)
         sql_fetch_blob_query = "SELECT "+field+" from "+table+" where id = "+emp_id
         # print(sql_fetch_blob_query)
@@ -32,7 +32,7 @@ def readBLOB(cursor,connection,table,field,emp_id, photo):
             image = row[0]
             print("Storing employee image on disk \n")
             write_file(image, photo)
-    # except:
+    except:
         print("Failed to read BLOB data from Firebird table")
     # finally:
     #     if __name__=='__main__':

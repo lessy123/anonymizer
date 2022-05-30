@@ -1,4 +1,4 @@
-from dis import code_info
+# from dis import code_info
 import connect_employee as CtoDB
 import fdb
 import work_with_image as wwi
@@ -6,11 +6,12 @@ import random
 import inn
 import datetime
 from datetime import timedelta
+# import experiments.exp_faker as fake
 import re
 import classification_natasha as classification_natasha
 import numpy as np
 import faker_generate as faker
-import change.blur as blur
+import blur as blur
 
 
 def generate_sql_query_UPDATE(name_table,field,id_name,id):    
@@ -219,9 +220,6 @@ def work_with_number(cur,connect,name_table,field,id_list,id_name_list):
     
     elif check[0]>0.8:
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_phone)
-    
-            #print(cur.fetchall())
-
 
 def work_with_text(cur,connect,name_table,field,id_list,id_name_list):
     """
