@@ -12,7 +12,9 @@ import classification_natasha as classification_natasha
 import numpy as np
 import faker_generate as faker
 import blur as blur
-
+import translit as trans
+import random
+import string
 
 def generate_sql_query_UPDATE(name_table,field,id_name,id):    
     """ Подготавливает запрос в зависимости от количества ключей
@@ -214,11 +216,14 @@ def work_with_number(cur,connect,name_table,field,id_list,id_name_list):
             check[2]+=classification_natasha.lunh_controling(text)
     check=check/len(id_list)
     if check[2]>0.65:
+        print("Обнаружено поле номера карты")
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_credit_card)
-    elif   check[1]>0.8:
+    elif   check[1]>0.75:
+        print("Обнаружено поле ИНН")  
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=inn.inn_gen)
     
-    elif check[0]>0.8:
+    elif check[0]>0.75:
+        print("Обнаружено поле номера телефона")  
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_phone)
 
 def work_with_text(cur,connect,name_table,field,id_list,id_name_list):
@@ -264,30 +269,50 @@ def work_with_text(cur,connect,name_table,field,id_list,id_name_list):
     # print(check)
     check=check/len(id_list)
     # print(check)
-    if  check[7]>0.8:
-        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_email)
-    elif   check[9]>0.8:
+    if  check[7]>0.75: #адрес почты
+        print("Обнаружено поле электронной почты")        
+        generate_new_data_for_email(cur=cur,connect=connect,name_table=name_table,email_field=field,id_name_list=id_name_list,generator=faker.generate_email)        
+        # generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_email)
+    elif   check[9]>0.75: # инн
+        print("Обнаружено поле ИНН")               
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=inn.inn_gen)
-    elif   check[4]>0.8:
-        if check[3]>0.8:
+    elif   check[4]>0.75: # адрес
+        if check[3]>0.75: # наличие города, страны, почтового индекса и т.д.
+            print("Обнаружен адрес")        
+
             generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_address)
         else:
+            print("Обнаружен адрес: тип - улица")        
+
             generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_street_address)
     # elif check[5]>0.8:
     #     """"""
-    elif check[10]>0.65:
+    elif check[10]>0.59: #номер карты
+        print("Обнаружено поле номера карты")        
+
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_credit_card)
 
-    elif check[8]>0.8:
-        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_phone)
-    elif check[0]>0.8:
-        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_first_name)
-    elif check[2]>0.7:
-        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_last_name)
-        # except Exception: 
+    elif check[8]>0.75: #номер телефона
+        print("Обнаружено поле номера телефона")        
 
+        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_phone)
+    elif check[0]>0.70: #имя
+        print("Обнаружено поле имени")        
+
+        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_first_name)
+    elif check[2]>0.60: #фамилия
+        print("Обнаружено поле фамилии")        
+
+        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_last_name)
+    elif check[1]>0.60: #отчество
+        print("Обнаружено поле отчества")        
+
+        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_middle_name)
+        # except Exception: 
+    else: print("Неизвестное поле. Индентифицикация невозможна.")
         #     print("Недопустимое значение",Exception)
         #     return
+    # print(check)
 def get_id_primary_key(cur,name_table,primory_key,threshold=None):
     """ Выдает все значения ключей
         cur - подключенная база данных
@@ -308,6 +333,86 @@ def get_id_primary_key(cur,name_table,primory_key,threshold=None):
     stroka+="from \""+name_table+"\""
     cur.execute(stroka)
     return cur.fetchall()
+
+def search_for_mail_related_fields(cur,connect,name_table,name_this_field):
+    """
+    поиск полей, хранящих данные для генерации почты
+    
+    
+    """
+    text=select_field_names(cur=cur,connect=connect,name_table=name_table)
+    result_fields=[]
+    for t in text:
+        tom=t[0].upper()
+        # print(tom)
+        # print(name_this_field.rstrip(),tom.rstrip(),name_this_field.rstrip()==tom.rstrip())
+        if tom.rstrip()==name_this_field.rstrip():
+            return result_fields
+        check=[0,0,0,0]
+        check[0] = tom.find("NAME")
+        check[1]  = tom.find("SECOND")
+        if check[1]<0:
+            check[1]  = tom.find("LAST")
+        check[2]  = tom.find("FIRST")
+        if check[2]<0:
+            check[2]  = tom.find("GIVEN")
+        check[3]  = tom.find("BIRTHDAY")
+        # print(check)       # 6
+        if check[0]>=0:
+            if check[1]>=0:
+                result_fields.append(t)
+            elif check[2]>=0:
+                result_fields.append(t)
+        elif check[3]>=0:
+             result_fields.append(t)
+
+def generate_new_data_for_email(cur,connect,name_table,email_field,id_name_list,generator):
+    """
+    Строит емаил почту. Если находит поля с собственными именами, то на их основе строит мейл
+    Иначе собирает через faker
+    
+    """
+    fields = search_for_mail_related_fields(cur=cur,connect=connect,name_table=name_table,name_this_field=email_field)
+    if fields==[]:
+        generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_email)
+    else:
+               
+        wenera = get_id_primary_key(cur=cur ,name_table=name_table,primory_key=id_name_list)   
+        for i in wenera:
+
+            text="" 
+            for field in fields:
+                name_f=field[0]
+                # print(name_table,field,id_name_list,i)
+                cur.execute(generate_sql_query_SELECT(name_table=name_table,field=name_f,id_name=id_name_list,id=i))
+                data=cur.fetchall()[0][0]
+                name_f=name_f.upper()
+                if name_f.find("BIRTHDAY")>=0:
+                    if text:
+                        text+="_"
+                    text+=str(data.year)
+                else:
+                    if text:
+                        text+="_"
+                    text+=data
+            if text.isdigit():
+                update_field(cur=cur,connect=connect,name_table=name_table,field=email_field,id_name=id_name_list,id=i,data=faker.generate_email())
+            else:
+                while len(text)<=10:
+                    text+=random.choice(string.ascii_letters)
+                text=trans.transliterate_text(text)
+                text+=faker.generate_email_domain()
+                update_field(cur=cur,connect=connect,name_table=name_table,field=email_field,id_name=id_name_list,id=i,data=text)
+
+
+        wenera = get_id_primary_key(cur=cur ,name_table=name_table,primory_key=id_name_list)
+        
+    
+    
+    
+    
+    """"""
+
 def generate_new_data(cur,connect,name_table,field,id_name_list,generator):
     """
     генерирует данные с помощью занесенной функии и заносит их в базу данных.
@@ -326,11 +431,6 @@ def generate_new_data(cur,connect,name_table,field,id_name_list,generator):
 
     #print(wenera)
 
-
-
-
-
-
 def work_with_date(cur,connect,name_table,field,id_list,id_name_list):
     """
     cur - подключенная база данных;
@@ -343,7 +443,7 @@ def work_with_date(cur,connect,name_table,field,id_list,id_name_list):
         cur.execute(generate_sql_query_SELECT(name_table=name_table,field=field,id_name=id_name_list,id=id))
         date=cur.fetchall()[0][0]
         if type(date)==datetime.date or type(date)==datetime.datetime:
-            add_date=timedelta(days=random.randint(-30,30))
+            add_date=timedelta(days=random.randint(-360,360))
             date+=add_date
             update_field(cur=cur,connect=connect,
             name_table=name_table,field=field,
@@ -447,11 +547,27 @@ def change_of_database(cur,connect,table_names=None):
 
 #date_db=0
 if __name__ == "__main__":    
-    cursor,connection  = CtoDB.connect_to_bd('/home/alex/anonymizer/BDstorage/name_storage.fdb')
+    cursor,connection,_  = CtoDB.connect_to_bd('/home/alex/anonymizer/BDstorage/presentation.fdb')
     # cursor,connection  = CtoDB.connect_to_bd('/home/alex/anonymizer/BDstorage/employee.fdb')   
     change_of_database(cursor,connection)
-    # change_of_database(cursor,connection,[("PYTHON_EMPLOYEE",)])
-    # generate_new_data(cur=cursor,connect=connection,name_table="SEC",field="EMAIL",id_name_list=[("id",)],generator=faker.generate_last_name)
+    # change_of_database(cursor,connection,[("foreign_names",)])
+
+    # update_fields(cur=cursor,connect=connection,
+    # name_table="PRIMER_2",field_list=[("MAIL",)],method_generation=[])
+
+    # generate_new_data(cur=cursor,connect=connection,
+    # name_table="DEMONSTRATION_PERSON",
+    # field="MAIL",
+    # id_name_list=[("ID",)],
+    # generator=faker.generate_email)
+
+
+    # generate_new_data(cur=cursor,connect=connection,
+    # name_table="PRIMER_2",
+    # field="MAIL",
+    # id_name_list=[("ID",)],
+    # generator=faker.generate_email)
+
     # generate_new_data(cur=cursor,connect=connection,name_table="foreign_names",field="EMAIL",id_name_list=[("id",)],generator=faker.generate_email)
     # generate_new_data(cur=cursor,connect=connection,name_table="foreign_names",field="SECOND_NAME",id_name_list=[("id",)],generator=faker.generate_last_name)
     # generate_new_data(

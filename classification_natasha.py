@@ -19,7 +19,7 @@ from natasha import (
 import re 
 import inn
 import faker_generate as faker
-
+import copy
 morph_vocab = MorphVocab()
 names_extractor = NamesExtractor(morph_vocab)
 dates_extractor = DatesExtractor(morph_vocab)
@@ -144,11 +144,33 @@ def classifity_text(text):
     if result is not None:
             if result.fact.first is not None:
                 check_name[0]=1
-            if result.fact.middle is not None:
-                check_name[1]=1
+            # if result.fact.middle is not None:
+            #     check_name[1]=1
             if result.fact.last is not None:
                 check_name[2]=1
-            
+    
+    middle= copy.copy(text)
+    middle=middle.rstrip()
+    middle=middle.upper()
+    # print(middle)
+    list_suffix=["ИЧ","ЫЧ","ИЧНА","ЫЧНА","ИНИЧНА","ЫНИЧНА","ОВИЧ","ОВНА","ЕВИЧ","ЕВНА"]
+    for suffix in list_suffix:
+        if len(middle)>=len(suffix)+2:
+            x=middle.find(suffix, len(middle)-len(suffix)-1)
+            if x>1:
+                result = names_extractor.find(middle[:x])
+                if result is not None:
+                    if result.fact.first is not None or result.fact.last is not None:
+                        check_name[1]=1
+                        break
+                
+    """
+    -ович, -овна
+    -евич, евна
+    -ич, -ична
+    -инична     10 
+    """
+
     result = addr_extractor.find(text)
     if result is not None:
         for i in result.fact.parts:
@@ -180,22 +202,39 @@ def classifity_text(text):
             #if result.fact.middle is not None:
     print(check_name)
 if __name__=="__main__":
-    # print(classifity_text("ne_magl@mail.ru"))
-    # print(classifity_text("84444"))
+
+    # count = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # for _ in range(30):
+    #     x=faker.generate_middle_name()
+    #     print(x)
+
+    #     for i in range(len(result:=classifity_text(x))):
+    #         count[i]+=result[i]
+    # print(count)
+    # w=[1]
+    # f=copy.copy(w)
+    # f[0]+=1
+    # print(w)
+    # print(f)
+    print(classifity_text("Лукич"))
+    print(classifity_text("ычМихалыч"))
+    # print(classifity_text("Иереми"))
+    # print(classifity_text("Иерем"))
+    # print(classifity_text("Иере"))
     # print(classifity_text("7877632773")) 
     # print(classifity_text("+7 877 632 77 73"))    
     # print(classifity_text("Улица Богатырей 12"))
-    num1=0
-    num2=0
-    x=10000
-    for i in range(x):
-        creditka=faker.generate_credit_card()
-        num1+=lunh_controling(creditka)
-        num2+=Luhn(creditka)
-        if i%100==0:
-            print(i//100)
-    print("num1",num1/x)
-    print("num2",num2/x)
+    # num1=0
+    # num2=0
+    # x=10000
+    # for i in range(x):
+    #     creditka=faker.generate_credit_card()
+    #     num1+=lunh_controling(creditka)
+    #     num2+=Luhn(creditka)
+    #     if i%100==0:
+    #         print(i//100)
+    # print("num1",num1/x)
+    # print("num2",num2/x)
 
     """
         0 - имя

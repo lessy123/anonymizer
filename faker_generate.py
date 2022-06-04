@@ -10,6 +10,9 @@ def generate_name(country='ru_RU'):
 def generate_first_name(country='ru_RU'):
     fake = Faker(country)
     return fake.first_name()
+def generate_middle_name(country='ru_RU'):
+    fake = Faker(country)
+    return fake.middle_name()
 def generate_last_name(country='ru_RU'):
     fake = Faker(country)
     return fake.last_name()
@@ -34,11 +37,16 @@ def generate_city(country='ru_RU'):
 def generate_credit_card(country='ru_RU'):
     fake = Faker(country)
     return fake.credit_card_number()
+def generate_email_domain(country='ru_RU'):
+    fake = Faker(country)
+    return "@"+fake.free_email_domain()
+
 # generate_name('ja_JP')
 # generate_name('en_US')
 # print(__name__)
 if __name__=="__main__":
     # print(generate_first_name('en_US'))
     # print(generate_last_name('ru_RU'))
-    print(generate_city('ru_RU'))
+    for i in range(3):
+        print(generate_email_domain('ru_RU'))
 
