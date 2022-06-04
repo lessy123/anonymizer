@@ -215,7 +215,7 @@ def work_with_number(cur,connect,name_table,field,id_list,id_name_list):
             check[1]+=inn.inn_check(text)
             check[2]+=classification_natasha.lunh_controling(text)
     check=check/len(id_list)
-    if check[2]>0.65:
+    if check[2]>0.45:
         print("Обнаружено поле номера карты")
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_credit_card)
     elif   check[1]>0.75:
@@ -287,7 +287,7 @@ def work_with_text(cur,connect,name_table,field,id_list,id_name_list):
             generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_street_address)
     # elif check[5]>0.8:
     #     """"""
-    elif check[10]>0.59: #номер карты
+    elif check[10]>0.45: #номер карты
         print("Обнаружено поле номера карты")        
 
         generate_new_data(cur=cur,connect=connect,name_table=name_table,field=field,id_name_list=id_name_list,generator=faker.generate_credit_card)
@@ -401,6 +401,7 @@ def generate_new_data_for_email(cur,connect,name_table,email_field,id_name_list,
                 while len(text)<=10:
                     text+=random.choice(string.ascii_letters)
                 text=trans.transliterate_text(text)
+                text=text.replace("\'", "")
                 text+=faker.generate_email_domain()
                 update_field(cur=cur,connect=connect,name_table=name_table,field=email_field,id_name=id_name_list,id=i,data=text)
 
@@ -547,19 +548,23 @@ def change_of_database(cur,connect,table_names=None):
 
 #date_db=0
 if __name__ == "__main__":    
-    cursor,connection,_  = CtoDB.connect_to_bd('/home/alex/anonymizer/BDstorage/presentation.fdb')
+    # cursor,connection,_  = CtoDB.connect_to_bd('/home/alex/anonymizer/BDstorage/presentation.fdb')
+    cursor,connection,_  = CtoDB.connect_to_bd('/home/alex/anonymizer/BDstorage/name_storage.fdb')
+    # /home/alex/anonymizer/BDstorage/name_storage.fdb
     # cursor,connection  = CtoDB.connect_to_bd('/home/alex/anonymizer/BDstorage/employee.fdb')   
-    change_of_database(cursor,connection)
+
+    # change_of_database(cursor,connection)
+
     # change_of_database(cursor,connection,[("foreign_names",)])
 
     # update_fields(cur=cursor,connect=connection,
     # name_table="PRIMER_2",field_list=[("MAIL",)],method_generation=[])
 
-    # generate_new_data(cur=cursor,connect=connection,
-    # name_table="DEMONSTRATION_PERSON",
-    # field="MAIL",
-    # id_name_list=[("ID",)],
-    # generator=faker.generate_email)
+    generate_new_data(cur=cursor,connect=connection,
+    name_table="ADDRESS_PERSON",
+    field="PHONE_NUMBER",
+    id_name_list=[("ID",),("TOWN",)],
+    generator=faker.generate_phone)
 
 
     # generate_new_data(cur=cursor,connect=connection,
